@@ -654,6 +654,16 @@ Use checksums or output comparisons so that:
 - both matmul versions produce matching output matrices; and
 - serial and threaded sums agree within a reasonable floating-point tolerance.
 
+The implemented branch includes a correctness suite:
+
+~~~sh
+sh tests/run.sh
+~~~
+
+It checks empty inputs, stride edge cases, rectangular traversal, copy boundaries, known matmul answers, odd matrix sizes against a double-precision reference, and uneven thread partitions. It runs both an optimized build and an AddressSanitizer/UndefinedBehaviorSanitizer build. The benchmark also validates its measured results outside the timed regions.
+
+In this implementation, stride zero means stride one, and a stride larger than the array length still visits every element once. An empty threaded input returns zero. For a nonempty input, an invalid thread count, allocation failure, or worker-creation failure returns `NAN`; successfully created workers are joined before cleanup. An unexpected join failure aborts rather than releasing storage that a worker may still use.
+
 ### Keep Setup Work Outside the Timed Region
 
 Unless you are intentionally measuring setup cost, do not include these inside a kernel timing:
@@ -677,6 +687,8 @@ Possible summaries include:
 - arithmetic mean.
 
 Whichever method you choose, document it in the pull request.
+
+The implemented driver uses one untimed warmup and the minimum of five samples. Short operations need batching to avoid zero-length clock intervals: each copy sample contains 256 calls, and each standalone transpose sample contains 16 calls. Their reported times are per call. Other samples contain one call. The one-use transpose-plus-matmul interval is measured directly, rather than adding independently selected minimum times. These are warmed measurements; effective copy bandwidth is not a direct DRAM bandwidth measurement.
 
 ### Compare Fairly
 
