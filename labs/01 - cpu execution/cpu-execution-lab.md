@@ -520,6 +520,36 @@ effective GB/s = useful bytes moved / elapsed seconds / 1000000000.0
 
 The factor of two represents one useful read from the source and one useful write to the destination.
 
+### Before Matmul: Storage Layout and Floating-Point Throughput
+
+**Storage order** describes how a matrix is arranged in a flat array. For a matrix with `rows` rows and `columns` columns:
+
+- Row-major storage places each row together: `matrix[row * columns + column]`.
+- Column-major storage places each column together: `matrix[column * rows + row]`.
+
+**Traversal order** describes which element the loops visit next. The row and column traversal experiment uses row-major storage in both functions; visiting columns first does not change the storage layout.
+
+For example, the matrix `[[1, 2, 3], [4, 5, 6]]` is stored as `[1, 2, 3, 4, 5, 6]` in row-major order and `[1, 4, 2, 5, 3, 6]` in column-major order. A row-major copy of the transpose has the same flat arrangement as a column-major copy of the original matrix. In Step 8, A stays row-major while the transposed buffer makes B's original columns contiguous. The result is still **A multiplied by B**.
+
+A **FLOP** is one floating-point arithmetic operation, such as an addition or multiplication. A multiply followed by an add counts as two FLOPs, even if the processor uses one fused multiply-add instruction. FLOPs count work; **FLOP/s** measures how much work completes per second.
+
+- **GFLOP/s** means billions (`10^9`) of floating-point operations per second.
+- **TFLOP/s** means trillions (`10^12`) of floating-point operations per second.
+- `1 TFLOP/s = 1000 GFLOP/s`. A TFLOP without `/s` is a trillion operations, not a rate.
+
+Each of the `n * n` output elements in square matmul needs `n` multiplications and approximately `n` additions. Use the conventional approximate work count `2 * n * n * n`:
+
+~~~text
+GFLOP/s = (2.0 * n * n * n) / elapsed_seconds / 1e9
+TFLOP/s = (2.0 * n * n * n) / elapsed_seconds / 1e12
+~~~
+
+Starting with `2.0` makes the calculation floating-point and avoids computing the entire operation count with integer multiplication first. Report both units in main.c; timer.c only supplies elapsed seconds and does not know how much arithmetic an experiment performs. Copy bandwidth remains GB/s because it measures useful data movement.
+
+Both matmul implementations perform approximately the same arithmetic. If better memory locality halves execution time, achieved GFLOP/s and TFLOP/s double. For example, approximately two billion operations in 0.1 seconds gives 20 GFLOP/s, or 0.020 TFLOP/s; completing that same work in 0.05 seconds gives 40 GFLOP/s, or 0.040 TFLOP/s. The processor's theoretical peak has not changed. These are measured rates for this workload, and a speedup is not guaranteed for every matrix size or machine.
+
+Compare kernel-only speedup (`naive_time / prepared_kernel_time`) and one-use speedup including preparation (`naive_time / (transpose_time + prepared_kernel_time)`). If you report end-to-end throughput, divide the matmul operation count by the combined transpose and multiplication time and label it explicitly. The transpose moves data; it does not add matmul arithmetic to the numerator.
+
 ### Step 7: Implement matmul_naive.c
 
 Implement the direct three-loop definition of square matrix multiplication.
@@ -540,7 +570,7 @@ An approximate operation count is:
 2 * n * n * n floating-point operations
 ~~~
 
-From this, main.c can calculate approximate GFLOP/s.
+From this, main.c can calculate approximate GFLOP/s and TFLOP/s.
 
 ### Step 8: Implement matmul_transposed.c
 
@@ -875,9 +905,9 @@ Summarize the measurements in tables when useful.
 
 ### Matrix Multiplication
 
-| Matrix size | Version | Time | Approximate GFLOP/s | Validation |
-| --- | --- | ---: | ---: | --- |
-| | | | | |
+| Matrix size | Version | Time | Approximate GFLOP/s | Approximate TFLOP/s | Validation |
+| --- | --- | ---: | ---: | ---: | --- |
+| | | | | | |
 
 Report transpose time separately.
 
@@ -894,7 +924,7 @@ Answer these questions in your own words:
 1. How did increasing stride change performance, and why?
 2. How did row traversal compare with column traversal?
 3. What does the copy experiment suggest about the cost of moving data?
-4. Did transposing B change matmul performance?
+4. Did transposing B change matmul performance? Explain why the same operation count can produce different GFLOP/s and TFLOP/s, and distinguish storage order from traversal order.
 5. When the transpose cost is included, how does your interpretation change?
 6. When did threading help, and when did its coordination cost matter?
 7. Which results were surprising or inconsistent?

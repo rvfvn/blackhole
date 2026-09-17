@@ -128,13 +128,21 @@ double sum_array_with_stride(const float *data, size_t length, size_t stride){
         5. After every element has been reached exactly once, return the sum.
     */
 
-    // ||YOUR CODE GOES BELOW HERE||:
-
-    // temp lines to prevent unused-parameter warnings while the function is still empty.
-    (void)data;
-    (void)length;
-    (void)stride;
-
-    // temporary placeholder only! you should replace '0.0' with the computed sum, however you do that.
-    return 0.0;
+    /* A zero stride cannot advance; define it as the ordinary stride-one sum. */
+    if (stride == 0) {
+        stride = 1;
+    }
+    double sum = 0.0;
+    for (size_t offset = 0; offset < stride && offset < length; ++offset) {
+        size_t index = offset;
+        while (index < length) {
+            sum += data[index];
+            /* Check the remaining distance before adding to avoid size_t wrap. */
+            if (stride >= length - index) {
+                break;
+            }
+            index += stride;
+        }
+    }
+    return sum;
 }
