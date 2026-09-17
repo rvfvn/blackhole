@@ -103,7 +103,10 @@
 
 #include "bench.h"
 #include <pthread.h> // --> this provides the POSIX thread types and operations used by the threaded implementation
-#include <stddef.h>  
+#include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <math.h>
 
 
 // each worker thread will receive one separate task record like this one.
@@ -140,14 +143,22 @@ double sum_array_serial(const float *data, size_t length){
         4. Return the completed sum after every element has been reached exactly once.
     */
 
-    // ||YOUR CODE GOES BELOW HERE||:
+    double sum = 0.0;
+    for (size_t index = 0; index < length; ++index) {
+        sum += data[index];
+    }
+    return sum;
+}
 
-    // temp lines to prevent unused-parameter warnings while the function is still empty.
-    (void)data;
-    (void)length;
 
-    // temporary placeholder only! you should replace '0.0' with the computed sum, however you do that.
-    return 0.0;
+static void *sum_worker(void *argument) {
+    ThreadSumTask *task = argument;
+    double sum = 0.0;
+    for (size_t index = task->start_index; index < task->end_index; ++index) {
+        sum += task->data[index];
+    }
+    task->partial_sum = sum;
+    return NULL;
 }
 
 
@@ -185,16 +196,42 @@ double sum_array_threaded(const float *data, size_t length, size_t thread_count)
         7. Clean up the thread and task storage, then return the combined sum.
     */
 
-    // ||YOUR CODE GOES BELOW HERE||:
-
-    // the student will also create a private pthread worker function with this general signature:
-    //      static void *sum_worker(void *argument);
-
-    // temp lines to prevent unused-parameter warnings while the function is still empty.
-    (void)data;
-    (void)length;
-    (void)thread_count;
-
-    // temporary placeholder only! you should replace '0.0' with the combined partial sums.
-    return 0.0;
+    if (length == 0) {
+        return 0.0;
+    }
+    /* No error return parameter is available; NAN makes failures observable. */
+    if (thread_count == 0 || thread_count > length ||
+        thread_count > SIZE_MAX / sizeof(pthread_t) ||
+        thread_count > SIZE_MAX / sizeof(ThreadSumTask)) {
+        return NAN;
+    }
+    pthread_t *threads = malloc(thread_count * sizeof(*threads));
+    ThreadSumTask *tasks = malloc(thread_count * sizeof(*tasks));
+    if (threads == NULL || tasks == NULL) {
+        free(threads);
+        free(tasks);
+        return NAN;
+    }
+    size_t start = 0;
+    size_t created = 0;
+    for (size_t i = 0; i < thread_count; ++i) {
+        size_t count = length / thread_count + (i < length % thread_count);
+        tasks[i] = (ThreadSumTask){data, start, start + count, 0.0};
+        if (pthread_create(&threads[i], NULL, sum_worker, &tasks[i]) != 0) {
+            break;
+        }
+        ++created;
+        start += count;
+    }
+    double sum = 0.0;
+    for (size_t i = 0; i < created; ++i) {
+        /* A join failure leaves worker lifetime uncertain: do not free its data. */
+        if (pthread_join(threads[i], NULL) != 0) {
+            abort();
+        }
+        sum += tasks[i].partial_sum;
+    }
+    free(threads);
+    free(tasks);
+    return created == thread_count ? sum : NAN;
 }
