@@ -96,15 +96,13 @@ double sum_matrix_by_rows(const float *matrix, size_t rows, size_t columns){
         5. After every matrix element has been reached exactly once, return the sum.
     */
 
-    // ||YOUR CODE GOES BELOW HERE||:
-
-    // temp lines to prevent unused-parameter warnings while the function is still empty.
-    (void)matrix;
-    (void)rows;
-    (void)columns;
-
-    // temporary placeholder only! you should replace '0.0' with the computed sum, however you do that.
-    return 0.0;
+    double sum = 0.0;
+    for (size_t row = 0; row < rows; ++row) {
+        for (size_t column = 0; column < columns; ++column) {
+            sum += matrix[row * columns + column];
+        }
+    }
+    return sum;
 }
 
 
@@ -135,13 +133,11 @@ double sum_matrix_by_columns(const float *matrix, size_t rows, size_t columns){
         5. After every matrix element has been reached exactly once, return the sum.
     */
 
-    // ||YOUR CODE GOES BELOW HERE||:
-
-    // temp lines to prevent unused-parameter warnings while the function is still empty.
-    (void)matrix;
-    (void)rows;
-    (void)columns;
-
-    // temporary placeholder only! you should replace '0.0' with the computed sum, however you do that.
-    return 0.0;
+    double sum = 0.0;
+    for (size_t column = 0; column < columns; ++column) {
+        for (size_t row = 0; row < rows; ++row) {
+            sum += matrix[row * columns + column];
+        }
+    }
+    return sum;
 }
