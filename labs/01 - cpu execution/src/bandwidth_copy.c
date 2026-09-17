@@ -103,10 +103,7 @@ void copy_float_array(const float *source, float *destination, size_t length){
         5. Finish without returning a value because the completed copy already lives inside 'destination'.
     */
 
-    // ||YOUR CODE GOES BELOW HERE||:
-
-    // temp lines to prevent unused-parameter warnings while the function is still empty.
-    (void)source;
-    (void)destination;
-    (void)length;
+    for (size_t index = 0; index < length; ++index) {
+        destination[index] = source[index];
+    }
 }
