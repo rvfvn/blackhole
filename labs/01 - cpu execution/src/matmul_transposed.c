@@ -97,12 +97,11 @@ void transpose_square_matrix(const float *source, float *destination, size_t n){
         5. Finish after every source value has been copied into its swapped coordinate exactly once.
     */
 
-    // ||YOUR CODE GOES BELOW HERE||:
-
-    // temp lines to prevent unused-parameter warnings while the function is still empty.
-    (void)source;
-    (void)destination;
-    (void)n;
+    for (size_t row = 0; row < n; ++row) {
+        for (size_t column = 0; column < n; ++column) {
+            destination[column * n + row] = source[row * n + column];
+        }
+    }
 }
 
 
@@ -136,11 +135,13 @@ void matmul_with_transposed_b(const float *a, const float *b_transposed, float *
         6. Finish after every output position in C has been calculated exactly once.
     */
 
-    // ||YOUR CODE GOES BELOW HERE||:
-
-    // temp lines to prevent unused-parameter warnings while the function is still empty.
-    (void)a;
-    (void)b_transposed;
-    (void)c;
-    (void)n;
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < n; ++j) {
+            float sum = 0.0f;
+            for (size_t k = 0; k < n; ++k) {
+                sum += a[i * n + k] * b_transposed[j * n + k];
+            }
+            c[i * n + j] = sum;
+        }
+    }
 }

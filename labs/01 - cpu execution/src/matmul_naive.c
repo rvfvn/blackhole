@@ -120,11 +120,13 @@ void matmul_naive(const float *a, const float *b, float *c, size_t n){
         6. Finish after every output position in C has been calculated exactly once.
     */
 
-    // ||YOUR CODE GOES BELOW HERE||:
-
-    // temp lines to prevent unused-parameter warnings while the function is still empty.
-    (void)a;
-    (void)b;
-    (void)c;
-    (void)n;
+    for (size_t i = 0; i < n; ++i) {
+        for (size_t j = 0; j < n; ++j) {
+            float sum = 0.0f;
+            for (size_t k = 0; k < n; ++k) {
+                sum += a[i * n + k] * b[k * n + j];
+            }
+            c[i * n + j] = sum;
+        }
+    }
 }
