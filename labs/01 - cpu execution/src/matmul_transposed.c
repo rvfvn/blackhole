@@ -98,6 +98,11 @@ void transpose_square_matrix(const float *source, float *destination, size_t n){
     */
 
     // ||YOUR CODE GOES BELOW HERE||:
+    for (size_t row = 0; row < n; row++){
+        for (size_t column = 0; column < n; column++){
+            destination[column * n + row] = source[row * n + column];   // copy value from source to destination
+        }
+    }
 
     // temp lines to prevent unused-parameter warnings while the function is still empty.
     (void)source;
@@ -137,6 +142,17 @@ void matmul_with_transposed_b(const float *a, const float *b_transposed, float *
     */
 
     // ||YOUR CODE GOES BELOW HERE||:
+    for (size_t i = 0; i < n; i++){
+        for (size_t j = 0; j < n; j++){
+            c[i * n + j] = 0.0;   // initialize accumulator to 0.0
+
+            for (size_t k = 0; k < n; k++){
+                c[i * n + j] += a[i * n + k] * b_transposed[j * n + k];   // add value to accumulator
+            }
+
+            c[i * n + j] = c[i * n + j];   // store accumulator in C
+        }
+    }
 
     // temp lines to prevent unused-parameter warnings while the function is still empty.
     (void)a;

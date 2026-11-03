@@ -121,10 +121,20 @@ void matmul_naive(const float *a, const float *b, float *c, size_t n){
     */
 
     // ||YOUR CODE GOES BELOW HERE||:
+    for (size_t i = 0; i < n; i++){
+        for (size_t j = 0; j < n; j++){
 
-    // temp lines to prevent unused-parameter warnings while the function is still empty.
-    (void)a;
-    (void)b;
-    (void)c;
-    (void)n;
+            c[i * n + j] = 0.0;   // initialize accumulator to 0.0
+
+            for (size_t k = 0; k < n; k++){
+                c[i * n + j] += a[i * n + k] * b[k * n + j];   // add value to accumulator
+            }
+        }
+    }
+
+    // // temp lines to prevent unused-parameter warnings while the function is still empty.
+    // (void)a;
+    // (void)b;
+    // (void)c;
+    // (void)n;
 }

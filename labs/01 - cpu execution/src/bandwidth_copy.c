@@ -104,6 +104,9 @@ void copy_float_array(const float *source, float *destination, size_t length){
     */
 
     // ||YOUR CODE GOES BELOW HERE||:
+    for (size_t i = 0; i < length; i++){
+        destination[i] = source[i]; // copy the value from source to destination
+    }
 
     // temp lines to prevent unused-parameter warnings while the function is still empty.
     (void)source;

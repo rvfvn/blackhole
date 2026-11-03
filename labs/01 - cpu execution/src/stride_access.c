@@ -129,11 +129,19 @@ double sum_array_with_stride(const float *data, size_t length, size_t stride){
     */
 
     // ||YOUR CODE GOES BELOW HERE||:
+    double sum = 0.0;   // initialize sum to 0.0
 
-    // temp lines to prevent unused-parameter warnings while the function is still empty.
-    (void)data;
-    (void)length;
-    (void)stride;
+    for (size_t i = 0; i < stride; i++){    // iterate through array, starting at the beginning and advancing by stride
+        for (size_t j = i; j < length; j += stride){        // iterate through stride elements
+            sum += data[j];     // add the value to the sum
+        }
+    }
+    return sum;
+
+    // // temp lines to prevent unused-parameter warnings while the function is still empty.
+    // (void)data;
+    // (void)length;
+    // (void)stride;
 
     // temporary placeholder only! you should replace '0.0' with the computed sum, however you do that.
     return 0.0;
