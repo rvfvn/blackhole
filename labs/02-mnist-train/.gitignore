@@ -1,0 +1,5 @@
+# made by setup.sh: don't commit
+.venv/
+tinygrad/
+__pycache__/
+*.pyc
