@@ -104,6 +104,7 @@
 #include "bench.h"
 #include <pthread.h> // --> this provides the POSIX thread types and operations used by the threaded implementation
 #include <stddef.h>  
+#include <stdlib.h>
 
 
 // each worker thread will receive one separate task record like this one.
@@ -115,6 +116,17 @@ typedef struct {
     double partial_sum;
 } ThreadSumTask;
 
+static void *sum_worker(void *argument) {   // private pthread worker function
+    ThreadSumTask *task = (ThreadSumTask *)argument;    // cast argument to task record
+
+    task->partial_sum = 0.0;    // initialize partial sum to 0.0
+
+    for (size_t i = task->start_index; i < task->end_index; i++) {
+        task->partial_sum += task->data[i];
+    }
+
+    return NULL;
+}
 
 double sum_array_serial(const float *data, size_t length){
     /* Adds every float in one array from beginning to end using the calling thread only.
@@ -141,13 +153,20 @@ double sum_array_serial(const float *data, size_t length){
     */
 
     // ||YOUR CODE GOES BELOW HERE||:
+    double sum = 0.0;   // initialize sum to 0.0
+
+    for (size_t i = 0; i < length; i++){
+        sum += data[i];   // add value to sum
+    }
+
+    return sum;
 
     // temp lines to prevent unused-parameter warnings while the function is still empty.
-    (void)data;
-    (void)length;
+    // (void)data;
+    // (void)length;
 
     // temporary placeholder only! you should replace '0.0' with the computed sum, however you do that.
-    return 0.0;
+    // return 0.0;
 }
 
 
@@ -186,15 +205,78 @@ double sum_array_threaded(const float *data, size_t length, size_t thread_count)
     */
 
     // ||YOUR CODE GOES BELOW HERE||:
+    if (length == 0){
+        return 0.0;   // return 0.0 if array is empty
+    }
+
+    if (thread_count == 0){
+        return 0.0;   // return 0.0 if thread count is 0
+    }
+
+    if (thread_count > length){
+        thread_count = length;   // limit thread count to array length
+    }
+
+    pthread_t *threads = malloc(sizeof(pthread_t) * thread_count);   // allocate thread handles
+    ThreadSumTask *tasks = malloc(sizeof(ThreadSumTask) * thread_count);   // allocate task records
+
+    if (threads == NULL || tasks == NULL){
+        free(threads);   // free any allocated memory
+        free(tasks);
+        return 0.0;   // return 0.0 if memory allocation failed
+    }
+
+    size_t base_size = length / thread_count;
+    size_t remainder = length % thread_count;
+    size_t current_index = 0;
+    size_t created_threads = 0;
+
+    for (size_t i = 0; i < thread_count; i++){  // create one task for each thread
+        size_t start_index = current_index;
+        size_t end_index = current_index + base_size;
+
+        if (i < remainder){
+            end_index++;   // add one to the end index if we are on the last thread
+        }
+
+        tasks[i].data = data;
+        tasks[i].start_index = start_index;
+        tasks[i].end_index = end_index;
+        tasks[i].partial_sum = 0.0;
+
+        if (pthread_create(&threads[i], NULL, sum_worker, &tasks[i]) != 0){ // create thread
+            for (size_t j = 0; j < i; j++){
+                pthread_join(threads[j], NULL);   // wait for any created threads to complete
+            }
+            free(threads);   // free any allocated memory
+            free(tasks);
+            return 0.0;   // return 0.0 if thread creation failed
+        }
+
+        current_index = end_index;
+        created_threads++;
+    }
+
+    double partial_sum = 0.0;
+
+    for (size_t i = 0; i < created_threads; i++){
+        pthread_join(threads[i], NULL);   // wait for thread to complete
+        partial_sum += tasks[i].partial_sum;   // add partial sum to final sum
+    }
+
+    free(threads);   // free any allocated memory
+    free(tasks);
+
+    return partial_sum;   // return the final sum
 
     // the student will also create a private pthread worker function with this general signature:
     //      static void *sum_worker(void *argument);
 
     // temp lines to prevent unused-parameter warnings while the function is still empty.
-    (void)data;
-    (void)length;
-    (void)thread_count;
+    // (void)data;
+    // (void)length;
+    // (void)thread_count;
 
     // temporary placeholder only! you should replace '0.0' with the combined partial sums.
-    return 0.0;
+    // return 0.0;
 }

@@ -97,6 +97,15 @@ double sum_matrix_by_rows(const float *matrix, size_t rows, size_t columns){
     */
 
     // ||YOUR CODE GOES BELOW HERE||:
+    double sum = 0.0;   // initialize sum to 0.0
+
+    for (size_t row = 0; row < rows; row++) {   // iterate through rows
+        for (size_t column = 0; column < columns; column++) {   // iterate through columns
+            sum += matrix[row * columns + column];   // index formula
+        }
+    }
+
+    return sum;
 
     // temp lines to prevent unused-parameter warnings while the function is still empty.
     (void)matrix;
@@ -136,6 +145,15 @@ double sum_matrix_by_columns(const float *matrix, size_t rows, size_t columns){
     */
 
     // ||YOUR CODE GOES BELOW HERE||:
+    double sum = 0.0;   // initialize sum to 0.0
+
+    for (size_t column = 0; column < columns; column++) {
+        for (size_t row = 0; row < rows; row++) {
+            sum += matrix[row * columns + column];
+        }
+    }
+
+    return sum;
 
     // temp lines to prevent unused-parameter warnings while the function is still empty.
     (void)matrix;
